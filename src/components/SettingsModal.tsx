@@ -8,7 +8,7 @@ import {
   importBackupJSON,
   resetAllData,
 } from "../utils/storage";
-import { Settings, X, Key, Save, Download, Upload, RotateCcw, CheckCircle2 } from "lucide-react";
+import { Settings, X, Key, Save, Download, Upload, RotateCcw, CheckCircle2, FileImage, Trash2 } from "lucide-react";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -34,9 +34,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [principalName, setPrincipalName] = useState<string>(profile.principalName);
   const [principalNip, setPrincipalNip] = useState<string>(profile.principalNip);
   const [city, setCity] = useState<string>(profile.city);
+  const [kopSuratUrl, setKopSuratUrl] = useState<string | undefined>(profile.kopSuratUrl);
 
   const [apiKey, setApiKey] = useState<string>(getUserApiKey());
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
+
+  const handleKopSuratUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Mohon pilih file gambar (.jpg, .jpeg, .png)");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setKopSuratUrl(dataUrl);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +71,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       principalName,
       principalNip,
       city,
+      kopSuratUrl,
     };
 
     saveProfile(updated);
@@ -209,6 +230,60 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   className="w-full bg-[#F9F8F3] border border-[#D8D4C7] rounded-xl px-3 py-2 text-[#2D3127]"
                 />
               </div>
+            </div>
+
+            {/* Upload Kop Surat Sekolah */}
+            <div className="pt-2 border-t border-[#F0EEE4] space-y-2">
+              <label className="block font-bold text-xs uppercase tracking-wider text-[#D4A373] flex items-center gap-1.5">
+                <FileImage className="w-3.5 h-3.5" /> Kop Surat Sekolah (.jpg / .jpeg / .png)
+              </label>
+              <p className="text-[11px] text-[#6B6E60]">
+                Unggah gambar Kop Surat instansi/sekolah Anda. Gambar ini akan ditampilkan di posisi paling atas saat mencetak dokumen (cetak absensi, jurnal, nilai, dll).
+              </p>
+
+              {kopSuratUrl ? (
+                <div className="bg-[#F9F8F3] border border-[#D8D4C7] rounded-xl p-3 flex flex-col items-center gap-3">
+                  <div className="w-full max-h-36 flex items-center justify-center bg-white p-2 rounded-lg border border-[#E2DDD0] overflow-hidden">
+                    <img
+                      src={kopSuratUrl}
+                      alt="Pratinjau Kop Surat"
+                      className="max-h-32 object-contain"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F2EA] hover:bg-[#EFECE1] text-[#3D4035] rounded-lg cursor-pointer font-semibold text-xs border border-[#D8D4C7]">
+                      <Upload className="w-3.5 h-3.5 text-[#588157]" />
+                      Ganti Gambar Kop
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png"
+                        onChange={handleKopSuratUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setKopSuratUrl(undefined)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F8D7DA] hover:bg-[#f3c1c6] text-[#842029] rounded-lg font-semibold text-xs border border-[#F5C2C7] cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Hapus Kop Surat
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-[#D8D4C7] bg-[#F9F8F3] hover:bg-[#F4F2EA] rounded-xl p-4 cursor-pointer transition text-center group">
+                  <FileImage className="w-8 h-8 text-[#8C8F82] group-hover:text-[#588157] mb-1 transition" />
+                  <span className="font-semibold text-[#3D4035] text-xs">Klik untuk Mengunggah Kop Surat (.jpg, .png)</span>
+                  <span className="text-[10px] text-[#8C8F82]">Format gambar disarankan ber-rasio memanjang (misal: 1000x200 px)</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png"
+                    onChange={handleKopSuratUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
           </div>
 

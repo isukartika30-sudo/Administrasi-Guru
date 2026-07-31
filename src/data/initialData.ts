@@ -1,5 +1,6 @@
 import {
   Student,
+  ClassRoom,
   ScheduleItem,
   AgendaItem,
   JournalItem,
@@ -27,26 +28,9 @@ export const initialSchoolProfile: SchoolProfile = {
   city: "Jakarta Pusat",
 };
 
-export const sampleClasses = [
-  { id: "X-RPL-1", name: "X RPL 1", fase: "E" as const, studentCount: 12 },
-  { id: "XI-RPL-2", name: "XI RPL 2", fase: "F" as const, studentCount: 10 },
-  { id: "XII-RPL-1", name: "XII RPL 1", fase: "F" as const, studentCount: 10 },
-];
+export const sampleClasses: ClassRoom[] = [];
 
-export const sampleStudents: Student[] = [
-  { id: "STD-001", nisn: "0081234561", name: "Ahmad Rizky Pratama", gender: "L", parentName: "Bambang Pratama", parentPhone: "081234567890", address: "Jl. Merdeka No. 12, Jakarta", roleInClass: "Ketua Kelas" },
-  { id: "STD-002", nisn: "0081234562", name: "Anisa Rahmawati", gender: "P", parentName: "Suryono", parentPhone: "081234567891", address: "Jl. Melati No. 45, Jakarta", roleInClass: "Sekretaris" },
-  { id: "STD-003", nisn: "0081234563", name: "Budi Santoso", gender: "L", parentName: "Hadi Santoso", parentPhone: "081234567892", address: "Jl. Mawar No. 8, Jakarta", roleInClass: "Wakil Ketua" },
-  { id: "STD-004", nisn: "0081234564", name: "Citra Dewi Lestari", gender: "P", parentName: "Wawan Lestari", parentPhone: "081234567893", address: "Jl. Anggrek No. 19, Jakarta", roleInClass: "Bendahara" },
-  { id: "STD-005", nisn: "0081234565", name: "Dewa Gede Putu", gender: "L", parentName: "I Wayan Suardana", parentPhone: "081234567894", address: "Jl. Garuda No. 3, Jakarta", roleInClass: "Anggota" },
-  { id: "STD-006", nisn: "0081234566", name: "Fathir Muhammad", gender: "L", parentName: "Ahmad Hidayat", parentPhone: "081234567895", address: "Jl. Pemuda No. 77, Jakarta", roleInClass: "Anggota" },
-  { id: "STD-007", nisn: "0081234567", name: "Gita Gutawa Putri", gender: "P", parentName: "Erwin Gutawa", parentPhone: "081234567896", address: "Jl. Cempaka No. 23, Jakarta", roleInClass: "Anggota" },
-  { id: "STD-008", nisn: "0081234568", name: "Hasan Basri", gender: "L", parentName: "Samsul Basri", parentPhone: "081234567897", address: "Jl. Flamboyan No. 5, Jakarta", roleInClass: "Anggota" },
-  { id: "STD-009", nisn: "0081234569", name: "Indah Permatasari", gender: "P", parentName: "Agus Setiawan", parentPhone: "081234567898", address: "Jl. Teratai No. 14, Jakarta", roleInClass: "Anggota" },
-  { id: "STD-010", nisn: "0081234570", name: "Kevin Sanjaya", gender: "L", parentName: "Rudi Haryanto", parentPhone: "081234567899", address: "Jl. Kencana No. 88, Jakarta", roleInClass: "Anggota" },
-  { id: "STD-011", nisn: "0081234571", name: "Lestari Putri Wibowo", gender: "P", parentName: "Joko Wibowo", parentPhone: "081234567800", address: "Jl. Dahlia No. 31, Jakarta", roleInClass: "Anggota" },
-  { id: "STD-012", nisn: "0081234572", name: "Muhammad Farhan", gender: "L", parentName: "Umar Farhan", parentPhone: "081234567801", address: "Jl. Kenanga No. 62, Jakarta", roleInClass: "Anggota" },
-];
+export const sampleStudents: Student[] = [];
 
 export const sampleSchedules: ScheduleItem[] = [
   { id: "SCH-1", day: "Senin", period: 1, timeSlot: "07:00 - 08:30", classId: "X-RPL-1", className: "X RPL 1", subject: "Informatika (Fase E)", room: "Lab Komputer 1", color: "blue" },

@@ -79,18 +79,29 @@ export const PrintModal: React.FC<PrintModalProps> = ({
 
           <div className="printable-content max-w-3xl mx-auto font-sans leading-relaxed">
             {/* Kop Surat Sekolah */}
-            <div className="border-b-4 border-double border-[#3D4035] pb-4 mb-6 text-center">
-              <h1 className="text-xl font-bold uppercase tracking-wide text-[#2D3127]">
-                {profile.schoolName}
-              </h1>
-              <p className="text-xs font-semibold text-[#3D4035] uppercase">
-                Aplikasi Administrasi Guru & Asisten AI Kurikulum Merdeka
-              </p>
-              <p className="text-xs text-[#6B6E60] mt-1">
-                Tahun Ajaran {profile.academicYear} &bull; Semester{" "}
-                {profile.semester} &bull; {profile.city}
-              </p>
-            </div>
+            {profile.kopSuratUrl ? (
+              <div className="mb-6 text-center">
+                <img
+                  src={profile.kopSuratUrl}
+                  alt={`Kop Surat ${profile.schoolName}`}
+                  className="w-full max-h-44 object-contain mx-auto"
+                />
+                <div className="border-b-2 border-[#2D3127] mt-2"></div>
+              </div>
+            ) : (
+              <div className="border-b-4 border-double border-[#3D4035] pb-4 mb-6 text-center">
+                <h1 className="text-xl font-bold uppercase tracking-wide text-[#2D3127]">
+                  {profile.schoolName}
+                </h1>
+                <p className="text-xs font-semibold text-[#3D4035] uppercase">
+                  Aplikasi Administrasi Guru & Asisten AI Kurikulum Merdeka
+                </p>
+                <p className="text-xs text-[#6B6E60] mt-1">
+                  Tahun Ajaran {profile.academicYear} &bull; Semester{" "}
+                  {profile.semester} &bull; {profile.city}
+                </p>
+              </div>
+            )}
 
             {/* Document Meta Information */}
             <div className="mb-6 bg-[#F9F8F3] p-4 rounded-xl border border-[#E2DDD0] print:border-none print:p-0 print:bg-transparent">

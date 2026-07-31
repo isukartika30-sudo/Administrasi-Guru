@@ -115,6 +115,7 @@ export interface SchoolProfile {
   principalName: string;
   principalNip: string;
   city: string;
+  kopSuratUrl?: string; // Data URL string for uploaded Kop Surat image (.jpg, .jpeg, .png)
 }
 
 export type TabType = 

@@ -123,11 +123,6 @@ export const WaliKelasModule: React.FC<WaliKelasModuleProps> = ({ profile }) => 
 
   // 2. DELETE CLASS
   const handleDeleteClass = (classId: string, className: string) => {
-    if (classes.length <= 1) {
-      showToast("error", "Minimal harus menyisakan 1 kelas!");
-      return;
-    }
-
     const confirmDel = window.confirm(
       `Apakah Anda yakin ingin menghapus kelas "${className}"? Data siswa di kelas ini tidak akan langsung terhapus, tetapi kelas akan dihilangkan dari opsi.`
     );
@@ -372,15 +367,13 @@ export const WaliKelasModule: React.FC<WaliKelasModuleProps> = ({ profile }) => 
                     Filter Siswa
                   </button>
 
-                  {classes.length > 1 && (
-                    <button
-                      onClick={() => handleDeleteClass(cls.id, cls.name)}
-                      className="text-[#842029] hover:text-red-700 p-1 cursor-pointer"
-                      title="Hapus Kelas"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                  <button
+                    onClick={() => handleDeleteClass(cls.id, cls.name)}
+                    className="text-[#842029] hover:text-red-700 p-1 cursor-pointer"
+                    title="Hapus Kelas"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             );
