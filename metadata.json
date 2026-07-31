@@ -1,0 +1,6 @@
+{
+  "name": "Aplikasi Super Administrasi Guru & Asisten AI",
+  "description": "Aplikasi Lengkap Administrasi Guru & Asisten AI Kurikulum Merdeka untuk Absensi, Jadwal, Agenda, Jurnal, Perwalian, Penilaian, Rekap Nilai, Laporan Cetak, dan Generator AI Modul Ajar, Soal & Asesmen.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
