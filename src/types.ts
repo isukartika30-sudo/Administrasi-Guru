@@ -1,5 +1,12 @@
 export type AttendanceStatus = "H" | "I" | "S" | "A"; // Hadir, Izin, Sakit, Alpa
 
+export interface ClassRoom {
+  id: string;
+  name: string;
+  fase: "A" | "B" | "C" | "D" | "E" | "F";
+  studentCount: number;
+}
+
 export interface Student {
   id: string;
   nisn: string;
@@ -10,6 +17,8 @@ export interface Student {
   address: string;
   notes?: string;
   roleInClass?: "Ketua Kelas" | "Wakil Ketua" | "Sekretaris" | "Bendahara" | "Anggota";
+  classId?: string;
+  className?: string;
 }
 
 export interface AttendanceRecord {

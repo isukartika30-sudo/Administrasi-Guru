@@ -1,11 +1,9 @@
 {
-  "projectId": "gen-lang-client-0258276816",
-  "appId": "1:1020684388645:web:f9a99125e0c02bcff8b2cc",
-  "apiKey": "AIzaSyCNRBx0j5j2-1oEuUEeTglUuXL6JboSsMA",
-  "authDomain": "gen-lang-client-0258276816.firebaseapp.com",
-  "storageBucket": "gen-lang-client-0258276816.firebasestorage.app",
-  "messagingSenderId": "1020684388645",
-  "measurementId": "",
-  "oAuthClientId": "1020684388645-0nracos365ipojlko0ald6ls9442ql1h.apps.googleusercontent.com",
-  "recaptchaSiteKey": ""
+  "apiKey": "AIzaSyD_R4yKHhEdPBqzBX01uVHrU-Mso_rqm-M",
+  "authDomain": "administrasi-guru-b21f0.firebaseapp.com",
+  "projectId": "administrasi-guru-b21f0",
+  "storageBucket": "administrasi-guru-b21f0.firebasestorage.app",
+  "messagingSenderId": "978811692018",
+  "appId": "1:978811692018:web:16cdef7f712f471015016b",
+  "measurementId": "G-2PEJ6X597B"
 }

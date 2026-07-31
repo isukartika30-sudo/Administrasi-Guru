@@ -1,6 +1,7 @@
 import {
   SchoolProfile,
   Student,
+  ClassRoom,
   ScheduleItem,
   AgendaItem,
   JournalItem,
@@ -71,8 +72,8 @@ export const getProfile = (): SchoolProfile => loadFromStorage(STORAGE_KEYS.PROF
 export const saveProfile = (data: SchoolProfile) => saveToStorage(STORAGE_KEYS.PROFILE, data);
 
 // Classes
-export const getClasses = () => loadFromStorage(STORAGE_KEYS.CLASSES, sampleClasses);
-export const saveClasses = (data: any[]) => saveToStorage(STORAGE_KEYS.CLASSES, data);
+export const getClasses = (): ClassRoom[] => loadFromStorage(STORAGE_KEYS.CLASSES, sampleClasses);
+export const saveClasses = (data: ClassRoom[]) => saveToStorage(STORAGE_KEYS.CLASSES, data);
 
 // Students
 export const getStudents = (): Student[] => loadFromStorage(STORAGE_KEYS.STUDENTS, sampleStudents);
