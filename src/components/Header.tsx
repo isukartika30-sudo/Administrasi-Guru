@@ -1,6 +1,6 @@
 import React from "react";
 import { SchoolProfile, TabType, AuthUser } from "../types";
-import { Sparkles, Settings, Calendar, Award, Building, UserCheck, ShieldCheck, LogIn } from "lucide-react";
+import { Sparkles, Settings, Calendar, Award, Building, UserCheck, ShieldCheck, LogIn, Users, LogOut } from "lucide-react";
 
 interface HeaderProps {
   profile: SchoolProfile;
@@ -9,6 +9,8 @@ interface HeaderProps {
   onOpenSettings: () => void;
   currentUser?: AuthUser;
   onOpenLogin: () => void;
+  onOpenUserList: () => void;
+  onLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,6 +19,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSettings,
   currentUser,
   onOpenLogin,
+  onOpenUserList,
+  onLogout,
 }) => {
   const todayFormatted = new Date().toLocaleDateString("id-ID", {
     weekday: "long",
@@ -67,6 +71,16 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* User Account & Quick Action Buttons */}
         <div className="flex items-center gap-2 ml-auto sm:ml-0">
+          {/* Daftar User Button */}
+          <button
+            onClick={onOpenUserList}
+            className="flex items-center gap-1.5 bg-[#2D3126] hover:bg-[#4E5244] text-[#EAE7DC] border border-[#4E5244] px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+            title="Lihat & Kelola Daftar Seluruh User"
+          >
+            <Users className="w-4 h-4 text-[#D4A373]" />
+            <span className="hidden md:inline">Daftar User</span>
+          </button>
+
           {/* User Account / Role Badge */}
           <button
             onClick={onOpenLogin}
@@ -106,8 +120,18 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Settings className="w-4 h-4" />
           </button>
+
+          {/* Logout Button */}
+          <button
+            onClick={onLogout}
+            className="p-2 text-red-300 hover:text-red-100 bg-[#2D3126] hover:bg-red-900/40 border border-red-800/50 rounded-xl transition cursor-pointer"
+            title="Keluar / Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </header>
   );
 };
+

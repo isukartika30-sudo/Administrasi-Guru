@@ -19,12 +19,14 @@ interface SidebarProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   onOpenQuickPrint: () => void;
+  onOpenUserList?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   setActiveTab,
   onOpenQuickPrint,
+  onOpenUserList,
 }) => {
   const menuItems = [
     { id: "overview" as TabType, label: "Beranda", icon: LayoutDashboard, badge: undefined },
@@ -87,8 +89,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </div>
 
-      {/* Quick Print / Export Box */}
+      {/* Quick Print & User Management Box */}
       <div className="p-4 m-4 bg-[#F4F2EA] rounded-2xl border border-[#E2DDD0] space-y-2">
+        {onOpenUserList && (
+          <button
+            onClick={onOpenUserList}
+            className="w-full flex items-center justify-center gap-2 bg-[#174EA6] hover:bg-[#1557B0] text-white px-3 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer mb-2"
+          >
+            <Users className="w-3.5 h-3.5 text-white" />
+            Daftar User & Akun Guru
+          </button>
+        )}
+
         <div className="flex items-center gap-2 text-xs font-bold text-[#3D4035]">
           <Printer className="w-4 h-4 text-[#588157]" />
           <span>Cetak Dokumen Guru</span>

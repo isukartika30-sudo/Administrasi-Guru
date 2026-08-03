@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { TabType, SchoolProfile, PrintData, AuthUser } from "./types";
 import { getProfile, getStudents, getSchedules, getJournals } from "./utils/storage";
-import { getCurrentUser, setCurrentUser, updateUserDriveUrl } from "./utils/auth";
+import { getCurrentUser, setCurrentUser, updateUserDriveUrl, logoutUser } from "./utils/auth";
 
 import { Header } from "./components/Header";
 import { Sidebar } from "./components/Sidebar";
@@ -19,8 +19,11 @@ import { AiAssistantModule } from "./components/AiAssistantModule";
 import { PrintModal } from "./components/PrintModal";
 import { SettingsModal } from "./components/SettingsModal";
 import { LoginModal } from "./components/LoginModal";
+import { LoginPage } from "./components/LoginPage";
+import { UserListModal } from "./components/UserListModal";
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [profile, setProfile] = useState<SchoolProfile>(getProfile());
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [currentUser, setAuthUser] = useState<AuthUser>(getCurrentUser());
@@ -29,6 +32,7 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+  const [isUserListOpen, setIsUserListOpen] = useState<boolean>(false);
   const [printData, setPrintData] = useState<PrintData | null>(null);
 
   const students = getStudents();
@@ -38,6 +42,7 @@ export default function App() {
   const handleLoginSuccess = (user: AuthUser) => {
     setCurrentUser(user);
     setAuthUser(user);
+    setIsAuthenticated(true);
 
     // Sync profile teacherName and nip if available
     setProfile((prev) => ({
@@ -46,6 +51,11 @@ export default function App() {
       nip: user.nip || prev.nip,
       subject: user.subject || prev.subject,
     }));
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setIsAuthenticated(false);
   };
 
   const handleUpdateUserDriveUrl = (url: string) => {
@@ -69,6 +79,11 @@ export default function App() {
     });
   };
 
+  // If user is not authenticated yet on startup, show mandatory Login Landing Page
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#F9F8F3] text-[#2F3327] font-sans flex flex-col antialiased">
       {/* Header Bar */}
@@ -79,6 +94,8 @@ export default function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         currentUser={currentUser}
         onOpenLogin={() => setIsLoginModalOpen(true)}
+        onOpenUserList={() => setIsUserListOpen(true)}
+        onLogout={handleLogout}
       />
 
       {/* Main Container Layout */}
@@ -88,6 +105,7 @@ export default function App() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onOpenQuickPrint={handleQuickPrintFromSidebar}
+          onOpenUserList={() => setIsUserListOpen(true)}
         />
 
         {/* Content View Area */}
@@ -164,6 +182,14 @@ export default function App() {
         onClose={() => setIsLoginModalOpen(false)}
         onLoginSuccess={handleLoginSuccess}
       />
+
+      <UserListModal
+        isOpen={isUserListOpen}
+        onClose={() => setIsUserListOpen(false)}
+        currentUser={currentUser}
+        onSwitchUser={handleLoginSuccess}
+      />
     </div>
   );
 }
+
