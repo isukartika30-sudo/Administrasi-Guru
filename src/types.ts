@@ -120,6 +120,7 @@ export interface SchoolProfile {
 
 export type TabType = 
   | "overview"
+  | "sikepo"
   | "kurikulum"
   | "absensi"
   | "jadwal"
@@ -129,6 +130,23 @@ export type TabType =
   | "penilaian"
   | "google_workspace"
   | "ai_assistant";
+
+export interface SikepoItem {
+  id: string;
+  title: string;              // Judul Bukti Dukung / Kegiatan
+  category: string;           // Kategori / Rencana Hasil Kerja (RHK)
+  description: string;        // Deskripsi detail kegiatan / narasi
+  date: string;               // Tanggal kegiatan (YYYY-MM-DD)
+  time: string;               // Jam / Waktu pelaksanaan (e.g. "08:00 - 10:00")
+  fileName?: string;          // Nama file yang diunggah
+  fileType?: string;          // Format file (.jpg, .pdf, .docx, dll)
+  fileSize?: string;          // Ukuran file
+  fileDataUrl?: string;       // Base64 Data URL untuk pratinjau / unduh
+  driveUrl?: string;          // Link simpan di Google Drive
+  driveFolder?: string;       // Nama folder Google Drive
+  status: "Tersimpan di Google Drive" | "Lokal & Pending Sync";
+  createdAt: string;
+}
 
 export interface CpItem {
   id: string;
@@ -207,7 +225,7 @@ export type AiToolType =
   | "chat_guru";
 
 export interface PrintData {
-  type: "absensi" | "jurnal" | "rekap_nilai" | "agenda" | "rapor_siswa" | "cp" | "tp" | "atp" | "kktp" | "kkm" | "prota" | "prosem" | "kurikulum";
+  type: "absensi" | "jurnal" | "rekap_nilai" | "agenda" | "rapor_siswa" | "cp" | "tp" | "atp" | "kktp" | "kkm" | "prota" | "prosem" | "kurikulum" | "sikepo";
   title: string;
   subtitle?: string;
   classId?: string;

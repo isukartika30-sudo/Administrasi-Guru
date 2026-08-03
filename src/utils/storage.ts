@@ -13,6 +13,7 @@ import {
   AtpItem,
   KktpItem,
   ProtaProsemItem,
+  SikepoItem,
 } from "../types";
 import {
   initialSchoolProfile,
@@ -29,6 +30,7 @@ import {
   sampleAtps,
   sampleKktps,
   sampleProtaProsems,
+  sampleSikepoItems,
 } from "../data/initialData";
 
 const STORAGE_KEYS = {
@@ -46,6 +48,7 @@ const STORAGE_KEYS = {
   ATPS: "eduadmin_atps_v1",
   KKTPS: "eduadmin_kktps_v1",
   PROTA_PROSEM: "eduadmin_prota_prosem_v1",
+  SIKEPO: "eduadmin_sikepo_v1",
   USER_API_KEY: "eduadmin_user_gemini_api_key",
 };
 
@@ -139,6 +142,12 @@ export const saveUserApiKey = (key: string) => {
   }
 };
 
+// SIKEPO Storage
+export const getSikepoItems = (): SikepoItem[] =>
+  loadFromStorage<SikepoItem[]>(STORAGE_KEYS.SIKEPO, sampleSikepoItems);
+export const saveSikepoItems = (items: SikepoItem[]): void =>
+  saveToStorage(STORAGE_KEYS.SIKEPO, items);
+
 // Reset all data back to factory defaults
 export const resetAllData = (): void => {
   localStorage.removeItem(STORAGE_KEYS.PROFILE);
@@ -150,6 +159,7 @@ export const resetAllData = (): void => {
   localStorage.removeItem(STORAGE_KEYS.HOMEROOM);
   localStorage.removeItem(STORAGE_KEYS.ASSESSMENTS);
   localStorage.removeItem(STORAGE_KEYS.ATTENDANCE);
+  localStorage.removeItem(STORAGE_KEYS.SIKEPO);
   window.location.reload();
 };
 

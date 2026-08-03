@@ -104,12 +104,17 @@ export const PrintModal: React.FC<PrintModalProps> = ({
             )}
 
             {/* Document Meta Information */}
-            <div className="mb-6 bg-[#F9F8F3] p-4 rounded-xl border border-[#E2DDD0] print:border-none print:p-0 print:bg-transparent">
-              <h2 className="text-lg font-bold text-[#2D3127] uppercase text-center mb-3">
+            <div className="mb-6 bg-[#F9F8F3] p-4 rounded-xl border border-[#E2DDD0] print:border-none print:p-0 print:bg-transparent text-center">
+              <h2 className="text-lg font-bold text-[#2D3127] uppercase mb-1">
                 {printData.title}
               </h2>
+              {printData.subtitle && (
+                <p className="text-xs font-semibold text-[#588157] mb-3 uppercase tracking-wide">
+                  {printData.subtitle}
+                </p>
+              )}
 
-              <div className="grid grid-cols-2 gap-2 text-xs text-[#3D4035]">
+              <div className="grid grid-cols-2 gap-2 text-xs text-[#3D4035] text-left mt-2">
                 <div>
                   <span className="font-semibold text-[#2D3127]">Mata Pelajaran:</span>{" "}
                   {printData.subject || profile.subject}
@@ -372,6 +377,59 @@ export const PrintModal: React.FC<PrintModalProps> = ({
                       <td className="border border-[#D8D4C7] p-2 text-[#3D4035] font-medium">{item.intervalMahir}</td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            )}
+
+            {printData.type === "sikepo" && (
+              <table className="w-full border-collapse border border-[#D8D4C7] text-xs mb-8">
+                <thead>
+                  <tr className="bg-[#F4F2EA] text-[#2D3127] font-semibold">
+                    <th className="border border-[#D8D4C7] p-2 text-center w-8">No</th>
+                    <th className="border border-[#D8D4C7] p-2 text-left w-28">Tanggal & Waktu</th>
+                    <th className="border border-[#D8D4C7] p-2 text-left w-48">Kegiatan / RHK Kinerja</th>
+                    <th className="border border-[#D8D4C7] p-2 text-left">Deskripsi & Narasi Bukti Dukung</th>
+                    <th className="border border-[#D8D4C7] p-2 text-left w-36">File & Google Drive</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {printData.items.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="border border-[#D8D4C7] p-4 text-center text-[#8C8F82] italic">
+                        Belum ada data bukti dukung kinerja untuk periode ini.
+                      </td>
+                    </tr>
+                  ) : (
+                    printData.items.map((item, idx) => (
+                      <tr key={item.id || idx}>
+                        <td className="border border-[#D8D4C7] p-2 text-center font-bold">{idx + 1}</td>
+                        <td className="border border-[#D8D4C7] p-2">
+                          <div className="font-semibold text-[#2D3127]">
+                            {item.date ? new Date(item.date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"}
+                          </div>
+                          <div className="text-[10px] text-[#6B6E60]">{item.time || "-"}</div>
+                        </td>
+                        <td className="border border-[#D8D4C7] p-2 font-medium">
+                          <div className="font-bold text-[#2D3127]">{item.title}</div>
+                          <div className="text-[10px] text-[#588157] font-semibold">{item.category}</div>
+                        </td>
+                        <td className="border border-[#D8D4C7] p-2 text-[#3D4035] leading-relaxed whitespace-pre-line">
+                          {item.description}
+                        </td>
+                        <td className="border border-[#D8D4C7] p-2">
+                          <div className="font-mono text-[11px] text-[#2D3127] truncate font-semibold">
+                            {item.fileName || "File Bukti Dukung"}
+                          </div>
+                          <div className="text-[10px] text-[#588157] font-bold mt-0.5">
+                            {item.status || "Tersimpan di Google Drive"}
+                          </div>
+                          {item.driveFolder && (
+                            <div className="text-[9px] text-[#8C8F82]">Folder: {item.driveFolder}</div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             )}

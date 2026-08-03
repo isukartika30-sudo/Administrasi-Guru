@@ -13,6 +13,7 @@ import {
   AtpItem,
   KktpItem,
   ProtaProsemItem,
+  SikepoItem,
 } from "../types";
 
 export const initialSchoolProfile: SchoolProfile = {
@@ -390,4 +391,38 @@ export const sampleProtaProsems: ProtaProsemItem[] = [
     jp: 4,
     activityType: "Asesmen Sumatif",
   },
+];
+
+// Sample SIKEPO Items (Bukti Dukung Kinerja Pegawai)
+export const sampleSikepoItems: SikepoItem[] = [
+  {
+    id: "SKP-001",
+    title: "Laporan Modul Ajar Informatika Fase E Bab 1",
+    category: "Pelaksanaan Pembelajaran",
+    description: "Menyusun dan melaksanakan modul ajar Kurikulum Merdeka topik Berpikir Komputasional beserta materi ajar dan media presentasi interaktif.",
+    date: "2026-08-01",
+    time: "08:00 - 11:30 WIB",
+    fileName: "Modul_Ajar_Informatika_FaseE.pdf",
+    fileType: "application/pdf",
+    fileSize: "1.8 MB",
+    driveUrl: "https://drive.google.com/drive/u/0/my-drive",
+    driveFolder: "SIKEPO_2026/Agustus",
+    status: "Tersimpan di Google Drive",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "SKP-002",
+    title: "Sertifikat Web Seminar Peningkatan Kompetensi Digital Guru",
+    category: "Pengembangan Diri",
+    description: "Mengikuti Seminar Nasional Pemanfaatan Artificial Intelligence Gemini untuk Efisiensi Pembelajaran Sekolah Menengah Kejuruan.",
+    date: "2026-08-02",
+    time: "13:00 - 16:00 WIB",
+    fileName: "Sertifikat_Webinar_AI_Guru.jpg",
+    fileType: "image/jpeg",
+    fileSize: "850 KB",
+    driveUrl: "https://drive.google.com/drive/u/0/my-drive",
+    driveFolder: "SIKEPO_2026/Agustus",
+    status: "Tersimpan di Google Drive",
+    createdAt: new Date().toISOString(),
+  }
 ];

@@ -62,6 +62,7 @@ export const KurikulumModule: React.FC<KurikulumModuleProps> = ({ onOpenPrint })
   // Search / Filters
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedFase, setSelectedFase] = useState<string>("Semua");
+  const [selectedSemester, setSelectedSemester] = useState<"Semua" | "Ganjil" | "Genap">("Semua");
 
   // AI Loading & Notification
   const [aiLoading, setAiLoading] = useState<boolean>(false);
@@ -325,28 +326,49 @@ export const KurikulumModule: React.FC<KurikulumModuleProps> = ({ onOpenPrint })
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Trigger Print Modal for active view
-  const handlePrintCurrentSubTab = () => {
+  // Trigger Print Modal for active view with semester usage
+  const handlePrintCurrentSubTab = (targetSemester?: "Semua" | "Ganjil" | "Genap") => {
+    const sem = targetSemester || selectedSemester;
+    const semText =
+      sem === "Ganjil"
+        ? "Semester Ganjil (Semester 1)"
+        : sem === "Genap"
+        ? "Semester Genap (Semester 2)"
+        : "Semester Ganjil & Genap (1 & 2)";
+
     if (activeSubTab === "cp") {
       onOpenPrint({
         type: "cp",
         title: "DOKUMEN CAPAIAN PEMBELAJARAN (CP) KURIKULUM MERDEKA",
+        subtitle: `Penggunaan: ${semText}`,
+        periodLabel: semText,
         items: cps,
       });
     } else if (activeSubTab === "tp") {
       onOpenPrint({
         type: "tp",
         title: "RUMUSAN TUJUAN PEMBELAJARAN (TP) TERINTEGRASI",
+        subtitle: `Penggunaan: ${semText}`,
+        periodLabel: semText,
         items: tps.map((t) => {
           const parentCp = cps.find((c) => c.id === t.cpId);
           return { ...t, cpCode: parentCp?.code, cpDesc: parentCp?.description };
         }),
       });
     } else if (activeSubTab === "atp") {
+      const filteredAtps =
+        sem === "Ganjil"
+          ? atps.filter((a) => a.semester === "1" || a.semester?.toLowerCase().includes("ganjil"))
+          : sem === "Genap"
+          ? atps.filter((a) => a.semester === "2" || a.semester?.toLowerCase().includes("genap"))
+          : atps;
+
       onOpenPrint({
         type: "atp",
-        title: "ALUR TUJUAN PEMBELAJARAN (ATP) FASE " + selectedFase,
-        items: atps.map((a) => {
+        title: `ALUR TUJUAN PEMBELAJARAN (ATP) - FASE ${selectedFase}`,
+        subtitle: `Penggunaan: ${semText}`,
+        periodLabel: semText,
+        items: filteredAtps.map((a) => {
           const parentTp = tps.find((t) => t.id === a.tpId);
           return { ...a, tpCode: parentTp?.code, tpStatement: parentTp?.statement };
         }),
@@ -355,16 +377,27 @@ export const KurikulumModule: React.FC<KurikulumModuleProps> = ({ onOpenPrint })
       onOpenPrint({
         type: "kktp",
         title: "KRITERIA KETERCAPAIAN TUJUAN PEMBELAJARAN (KKTP / KKM)",
+        subtitle: `Penggunaan: ${semText}`,
+        periodLabel: semText,
         items: kktps.map((k) => {
           const parentTp = tps.find((t) => t.id === k.tpId);
           return { ...k, tpCode: parentTp?.code, tpStatement: parentTp?.statement };
         }),
       });
     } else if (activeSubTab === "prota") {
+      const filteredProta =
+        sem === "Ganjil"
+          ? protaList.filter((p) => p.semester === "1" || p.semester === "Ganjil")
+          : sem === "Genap"
+          ? protaList.filter((p) => p.semester === "2" || p.semester === "Genap")
+          : protaList;
+
       onOpenPrint({
         type: "prota",
         title: "PROGRAM TAHUNAN & PROGRAM SEMESTER (PROTA & PROSEM)",
-        items: protaList,
+        subtitle: `Penggunaan: ${semText}`,
+        periodLabel: semText,
+        items: filteredProta,
       });
     }
   };
@@ -397,11 +430,30 @@ export const KurikulumModule: React.FC<KurikulumModuleProps> = ({ onOpenPrint })
         {/* Global Export & Print Toolbar */}
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
-            onClick={handlePrintCurrentSubTab}
-            className="flex items-center gap-1.5 bg-[#D4A373] hover:bg-[#c29263] text-[#2D3127] font-bold px-3.5 py-2 rounded-xl text-xs transition cursor-pointer shadow-md"
+            onClick={() => handlePrintCurrentSubTab("Ganjil")}
+            className="flex items-center gap-1 bg-[#D4A373] hover:bg-[#c29263] text-[#2D3127] font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer shadow-xs"
+            title="Cetak Dokumen untuk Semester Ganjil"
           >
-            <Printer className="w-4 h-4" />
-            Cetak Kop Resmi PDF
+            <Printer className="w-3.5 h-3.5" />
+            Cetak Sem. Ganjil
+          </button>
+
+          <button
+            onClick={() => handlePrintCurrentSubTab("Genap")}
+            className="flex items-center gap-1 bg-[#CCD5AE] hover:bg-[#b8c298] text-[#2D3127] font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer shadow-xs"
+            title="Cetak Dokumen untuk Semester Genap"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Cetak Sem. Genap
+          </button>
+
+          <button
+            onClick={() => handlePrintCurrentSubTab("Semua")}
+            className="flex items-center gap-1 bg-[#FAF9F5] hover:bg-[#F2EFE6] text-[#3D4035] border border-[#D8D4C7] font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer shadow-2xs"
+            title="Cetak Dokumen Semua Semester"
+          >
+            <Printer className="w-3.5 h-3.5 text-[#588157]" />
+            Cetak Semua
           </button>
 
           <button
@@ -497,7 +549,21 @@ export const KurikulumModule: React.FC<KurikulumModuleProps> = ({ onOpenPrint })
         </div>
 
         {/* Filter / Search Bar */}
-        <div className="flex items-center gap-2 text-xs px-2">
+        <div className="flex flex-wrap items-center gap-2 text-xs px-2">
+          <div className="flex items-center gap-1.5 bg-[#F9F8F3] border border-[#D8D4C7] rounded-xl px-2.5 py-1">
+            <Filter className="w-3.5 h-3.5 text-[#588157]" />
+            <span className="font-semibold text-[#3D4035]">Semester:</span>
+            <select
+              value={selectedSemester}
+              onChange={(e) => setSelectedSemester(e.target.value as any)}
+              className="bg-transparent font-bold text-[#2D3127] focus:outline-hidden cursor-pointer"
+            >
+              <option value="Semua">Semua Semester</option>
+              <option value="Ganjil">Semester Ganjil (1)</option>
+              <option value="Genap">Semester Genap (2)</option>
+            </select>
+          </div>
+
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#8C8F82]" />
             <input

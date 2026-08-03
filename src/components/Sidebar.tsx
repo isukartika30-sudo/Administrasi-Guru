@@ -12,6 +12,7 @@ import {
   Printer,
   FileSpreadsheet,
   BookOpenCheck,
+  FolderCheck,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -27,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const menuItems = [
     { id: "overview" as TabType, label: "Beranda", icon: LayoutDashboard, badge: undefined },
+    { id: "sikepo" as TabType, label: "SIKEPO (Bukti Dukung)", icon: FolderCheck, badge: "Kinerja" },
     { id: "kurikulum" as TabType, label: "CP, TP, ATP & KKTP", icon: BookOpenCheck, badge: "Integrasi" },
     { id: "absensi" as TabType, label: "Absensi Siswa", icon: Users, badge: undefined },
     { id: "jadwal" as TabType, label: "Jadwal Mengajar", icon: CalendarDays, badge: undefined },

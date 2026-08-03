@@ -12,6 +12,7 @@ import { JurnalModule } from "./components/JurnalModule";
 import { WaliKelasModule } from "./components/WaliKelasModule";
 import { PenilaianModule } from "./components/PenilaianModule";
 import { KurikulumModule } from "./components/KurikulumModule";
+import { SikepoModule } from "./components/SikepoModule";
 import { GoogleWorkspaceModule } from "./components/GoogleWorkspaceModule";
 import { AiAssistantModule } from "./components/AiAssistantModule";
 import { PrintModal } from "./components/PrintModal";
@@ -74,6 +75,10 @@ export default function App() {
               setActiveTab={setActiveTab}
               onOpenQuickPrint={handleQuickPrintFromSidebar}
             />
+          )}
+
+          {activeTab === "sikepo" && (
+            <SikepoModule profile={profile} onOpenPrint={handleOpenPrint} />
           )}
 
           {activeTab === "kurikulum" && (
