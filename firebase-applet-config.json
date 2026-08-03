@@ -1,3 +1,4 @@
+{
   apiKey: "AIzaSyCgneS-e8BSfq_SI-UWSBL4BObiHDtebgM",
   authDomain: "aministrasi-guruv2.firebaseapp.com",
   projectId: "aministrasi-guruv2",
@@ -5,3 +6,4 @@
   messagingSenderId: "107191836191",
   appId: "1:107191836191:web:376c8733d1dba5ba793f2a",
   measurementId: "G-FFP00VP5QR"
+}
