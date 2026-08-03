@@ -3,11 +3,15 @@ export interface AuthUser {
   username: string;
   name: string;
   email: string;
+  password?: string;
   role: "superadmin" | "guru";
   nip?: string;
   subject?: string;
   avatar?: string;
   driveFolderUrl?: string; // Custom Link Google Drive Akun Masing-Masing
+  isVerified?: boolean; // Must be verified by superadmin to access app
+  resetPasswordRequested?: boolean; // True if user requested password reset
+  newPasswordCandidate?: string; // Pending password candidate submitted by user
 }
 
 export type AttendanceStatus = "H" | "I" | "S" | "A"; // Hadir, Izin, Sakit, Alpa

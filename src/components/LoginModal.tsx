@@ -144,50 +144,31 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
                     SA
                   </div>
                   <div>
-                    <div className="font-bold text-xs">Super Admin (Akses Seluruh Data Guru)</div>
-                    <div className="text-[10px] opacity-80">admin@smk.belajar.id</div>
+                    <div className="font-bold text-xs">Super Admin (Akses Seluruh Data)</div>
+                    <div className="text-[10px] opacity-80">phelunk@gmail.com</div>
                   </div>
                 </div>
                 <ShieldCheck className="w-4 h-4 text-[#174EA6] group-hover:scale-110 transition shrink-0" />
               </button>
 
-              <button
-                type="button"
-                onClick={() => handleQuickLogin(DEFAULT_USERS[1])}
-                className="w-full text-left p-2.5 rounded-xl bg-white hover:bg-[#F2EFE6] border border-[#E2DDD0] text-[#2D3127] transition flex items-center justify-between cursor-pointer group shadow-2xs"
-              >
-                <div className="flex items-center gap-2">
-                  <img
-                    src={DEFAULT_USERS[1].avatar}
-                    alt="Isu Kartika"
-                    className="w-7 h-7 rounded-full object-cover shrink-0"
-                  />
-                  <div>
-                    <div className="font-bold text-xs">Isu Kartika, S.Pd. (Guru Informatika)</div>
-                    <div className="text-[10px] text-[#6B6E60]">isukartika30@guru.smk.belajar.id</div>
+              {DEFAULT_USERS[1] && (
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin(DEFAULT_USERS[1])}
+                  className="w-full text-left p-2.5 rounded-xl bg-white hover:bg-[#F2EFE6] border border-[#E2DDD0] text-[#2D3127] transition flex items-center justify-between cursor-pointer group shadow-2xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-[#588157] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      IK
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs">Isu Kartika, S.Pd. (Guru)</div>
+                      <div className="text-[10px] text-[#6B6E60]">Isukartika30@guru.smk.belajar.id</div>
+                    </div>
                   </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-[#588157] group-hover:translate-x-1 transition shrink-0" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin(DEFAULT_USERS[2])}
-                className="w-full text-left p-2.5 rounded-xl bg-white hover:bg-[#F2EFE6] border border-[#E2DDD0] text-[#2D3127] transition flex items-center justify-between cursor-pointer group shadow-2xs"
-              >
-                <div className="flex items-center gap-2">
-                  <img
-                    src={DEFAULT_USERS[2].avatar}
-                    alt="Budi Santoso"
-                    className="w-7 h-7 rounded-full object-cover shrink-0"
-                  />
-                  <div>
-                    <div className="font-bold text-xs">Budi Santoso, M.Pd. (Guru Matematika)</div>
-                    <div className="text-[10px] text-[#6B6E60]">budi.santoso@guru.smk.belajar.id</div>
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-[#588157] group-hover:translate-x-1 transition shrink-0" />
-              </button>
+                  <ArrowRight className="w-4 h-4 text-[#588157] group-hover:translate-x-1 transition shrink-0" />
+                </button>
+              )}
             </div>
           </div>
         )}

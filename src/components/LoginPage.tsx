@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { AuthUser } from "../types";
-import { DEFAULT_USERS, getAllUsers, registerNewUser } from "../utils/auth";
+import {
+  getAllUsers,
+  registerNewUser,
+  validateLoginCredentials,
+  requestPasswordReset,
+} from "../utils/auth";
 import {
   ShieldCheck,
   User,
@@ -14,7 +19,11 @@ import {
   FolderSync,
   FileCheck2,
   BookOpen,
-  Bot
+  Bot,
+  RefreshCw,
+  AlertCircle,
+  Clock,
+  Key,
 } from "lucide-react";
 
 interface LoginPageProps {
@@ -22,7 +31,7 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
-  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "register" | "reset">("login");
   const [selectedRole, setSelectedRole] = useState<"guru" | "superadmin">("guru");
 
   // Form states
@@ -32,67 +41,119 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   // Register states
   const [regName, setRegName] = useState<string>("");
   const [regEmail, setRegEmail] = useState<string>("");
+  const [regPassword, setRegPassword] = useState<string>("");
   const [regNip, setRegNip] = useState<string>("");
   const [regSubject, setRegSubject] = useState<string>("");
   const [regRole, setRegRole] = useState<"guru" | "superadmin">("guru");
 
+  // Reset states
+  const [resetEmail, setResetEmail] = useState<string>("");
+  const [resetNewPass, setResetNewPass] = useState<string>("");
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const allRegisteredUsers = getAllUsers();
 
-  const handleQuickLogin = (user: AuthUser) => {
-    onLoginSuccess(user);
+  const handleQuickLogin = (u: AuthUser) => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    if (!u.isVerified) {
+      setErrorMsg(`Akun "${u.name}" (${u.email}) belum diverifikasi oleh Super Admin. Harap tunggu verifikasi.`);
+      return;
+    }
+
+    // Prompt or directly log in if pre-verified
+    if (u.password) {
+      setEmail(u.email);
+      setPassword(u.password);
+      const res = validateLoginCredentials(u.email, u.password);
+      if (res.success && res.user) {
+        onLoginSuccess(res.user);
+      } else {
+        setErrorMsg(res.error || "Gagal masuk.");
+      }
+    } else {
+      onLoginSuccess(u);
+    }
   };
 
   const handleSubmitLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setSuccessMsg(null);
 
-    const allUsers = getAllUsers();
-    const found = allUsers.find(
-      (u) =>
-        u.email.toLowerCase() === email.trim().toLowerCase() ||
-        u.username.toLowerCase() === email.trim().toLowerCase()
-    );
+    if (!email.trim()) {
+      setErrorMsg("Masukkan Email / Username terlebih dahulu.");
+      return;
+    }
 
-    if (found) {
-      onLoginSuccess(found);
+    const res = validateLoginCredentials(email, password);
+    if (res.success && res.user) {
+      onLoginSuccess(res.user);
     } else {
-      if (email.trim()) {
-        const newUser: AuthUser = {
-          id: `usr_${Date.now()}`,
-          username: email.trim(),
-          name: email.split("@")[0].toUpperCase().replace(".", " "),
-          email: email.trim(),
-          role: selectedRole,
-          subject: selectedRole === "superadmin" ? "Super Admin" : "Guru Mata Pelajaran",
-          driveFolderUrl: "https://drive.google.com/drive/u/0/my-drive",
-        };
-        onLoginSuccess(newUser);
-      } else {
-        setErrorMsg("Masukkan email / username terdaftar atau gunakan tombol Akses Cepat.");
-      }
+      setErrorMsg(res.error || "Gagal masuk. Periksa kembali email & kata sandi Anda.");
     }
   };
 
   const handleSubmitRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!regName.trim() || !regEmail.trim()) {
-      setErrorMsg("Nama Lengkap dan Email wajib diisi.");
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    if (!regName.trim() || !regEmail.trim() || !regPassword.trim()) {
+      setErrorMsg("Nama Lengkap, Email, dan Kata Sandi wajib diisi.");
       return;
     }
 
-    const newUser = registerNewUser({
+    const existingUsers = getAllUsers();
+    if (existingUsers.some((u) => u.email.toLowerCase() === regEmail.trim().toLowerCase())) {
+      setErrorMsg("Email ini sudah terdaftar di sistem. Silakan gunakan menu Masuk atau Lupa Password.");
+      return;
+    }
+
+    registerNewUser({
       username: regEmail.trim(),
       name: regName.trim(),
       email: regEmail.trim(),
+      password: regPassword.trim(),
       role: regRole,
       nip: regNip.trim() || "199001012022031001",
       subject: regSubject.trim() || "Guru Mata Pelajaran",
       driveFolderUrl: "https://drive.google.com/drive/u/0/my-drive",
     });
 
-    onLoginSuccess(newUser);
+    setSuccessMsg(
+      `Pendaftaran akun (${regEmail}) berhasil! Akun Anda sedang menunggu verifikasi oleh Super Admin (phelunk@gmail.com). Anda belum dapat masuk sebelum diverifikasi.`
+    );
+    setRegName("");
+    setRegEmail("");
+    setRegPassword("");
+    setRegNip("");
+    setRegSubject("");
+    setActiveTab("login");
+  };
+
+  const handleSubmitResetRequest = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    if (!resetEmail.trim() || !resetNewPass.trim()) {
+      setErrorMsg("Email/Username dan Password Baru wajib diisi.");
+      return;
+    }
+
+    const res = requestPasswordReset(resetEmail, resetNewPass);
+    if (res.success) {
+      setSuccessMsg(res.message);
+      setResetEmail("");
+      setResetNewPass("");
+      setActiveTab("login");
+    } else {
+      setErrorMsg(res.message);
+    }
   };
 
   return (
@@ -109,7 +170,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 Portal EduAdmin & SIKEPO SKP
               </h1>
               <p className="text-xs text-[#6B6E60]">
-                Sistem Administrasi Guru & Sinkronisasi Bukti Dukung Google Drive
+                Sistem Administrasi Guru & Verifikasi Akun Super Admin
               </p>
             </div>
           </div>
@@ -117,7 +178,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <div className="hidden sm:flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F0FE] text-[#174EA6] font-bold text-xs border border-[#D2E3FC]">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Ver. 2.4 Multi-Account & Drive Sync
+              Ver. 2.5 Access Control & Password Reset
             </span>
           </div>
         </div>
@@ -129,15 +190,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         <div className="lg:col-span-6 space-y-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E8F0FE] border border-[#D2E3FC] text-[#174EA6] text-xs font-bold shadow-2xs">
             <Sparkles className="w-4 h-4 text-[#174EA6]" />
-            Selamat Datang di Portal Resmi Guru & Tenaga Pendidik
+            Sistem Autentikasi & Otorisasi Terpusat
           </div>
 
           <div className="space-y-3">
             <h2 className="text-3xl sm:text-4xl font-black text-[#2D3127] tracking-tight leading-snug">
-              Kelola Administrasi Mengajar & SKP Terintegrasi Google Drive
+              Portal Administrasi Mengajar & Verifikasi Super Admin
             </h2>
             <p className="text-sm text-[#525548] leading-relaxed">
-              Masuk ke akun masing-masing guru untuk menyimpan bukti dukung RHK SKP, menyusun perangkat ajar, serta menyinkronkan berkas PDF resi bukti dukung ke folder Google Drive pribadi Anda.
+              Semua pengguna baru wajib melakukan pendaftaran dan diverifikasi secara langsung oleh <strong className="text-[#174EA6]">Super Admin (phelunk@gmail.com)</strong> sebelum dapat mengakses beranda dan fitur administrasi.
             </p>
           </div>
 
@@ -145,41 +206,41 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <div className="bg-white p-3.5 rounded-2xl border border-[#E2DDD0] flex items-start gap-3 shadow-2xs">
               <div className="w-9 h-9 rounded-xl bg-[#E8F0FE] text-[#174EA6] flex items-center justify-center shrink-0 font-bold">
-                <FolderSync className="w-5 h-5" />
+                <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-xs text-[#2D3127]">Google Drive Per Akun</h4>
-                <p className="text-[11px] text-[#6B6E60]">Tercatat & terhubung ke Google Drive akun masing-masing guru.</p>
-              </div>
-            </div>
-
-            <div className="bg-white p-3.5 rounded-2xl border border-[#E2DDD0] flex items-start gap-3 shadow-2xs">
-              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 font-bold">
-                <FileCheck2 className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-xs text-[#2D3127]">Resi Bukti Dukung PDF</h4>
-                <p className="text-[11px] text-[#6B6E60]">Generate otomatis PDF resi fisik RHK SKP per bulan.</p>
+                <h4 className="font-bold text-xs text-[#2D3127]">Verifikasi Super Admin</h4>
+                <p className="text-[11px] text-[#6B6E60]">Akun baru ditinjau & disetujui oleh Super Admin.</p>
               </div>
             </div>
 
             <div className="bg-white p-3.5 rounded-2xl border border-[#E2DDD0] flex items-start gap-3 shadow-2xs">
               <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 font-bold">
-                <BookOpen className="w-5 h-5" />
+                <RefreshCw className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-xs text-[#2D3127]">Kurikulum Merdeka</h4>
-                <p className="text-[11px] text-[#6B6E60]">Jurnal, Modul Ajar, ATP, & Administrasi Guru Lengkap.</p>
+                <h4 className="font-bold text-xs text-[#2D3127]">Reset Password Request</h4>
+                <p className="text-[11px] text-[#6B6E60]">Pengajuan reset password divalidasi oleh Super Admin.</p>
+              </div>
+            </div>
+
+            <div className="bg-white p-3.5 rounded-2xl border border-[#E2DDD0] flex items-start gap-3 shadow-2xs">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 font-bold">
+                <FolderSync className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-xs text-[#2D3127]">Integrasi Google Drive</h4>
+                <p className="text-[11px] text-[#6B6E60]">Tersambung ke folder Google Drive pribadi guru.</p>
               </div>
             </div>
 
             <div className="bg-white p-3.5 rounded-2xl border border-[#E2DDD0] flex items-start gap-3 shadow-2xs">
               <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 font-bold">
-                <Bot className="w-5 h-5" />
+                <FileCheck2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-xs text-[#2D3127]">Asisten AI Guru</h4>
-                <p className="text-[11px] text-[#6B6E60]">Pembuat Asesmen, Rubrik, & Materi Otomatis.</p>
+                <h4 className="font-bold text-xs text-[#2D3127]">Resi SKP & Perangkat Ajar</h4>
+                <p className="text-[11px] text-[#6B6E60]">Generate dokumen resmi administrasi guru.</p>
               </div>
             </div>
           </div>
@@ -189,81 +250,116 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         <div className="lg:col-span-6 bg-white border border-[#E2DDD0] rounded-3xl p-6 sm:p-8 shadow-xl space-y-6 relative">
           <div className="text-center space-y-1 border-b border-[#F2EFE6] pb-4">
             <h3 className="text-xl font-extrabold text-[#2D3127]">
-              Masuk / Login Terlebih Dahulu
+              {activeTab === "login" && "Masuk ke Beranda EduAdmin"}
+              {activeTab === "register" && "Pendaftaran Akun Guru Baru"}
+              {activeTab === "reset" && "Pengajuan Reset Kata Sandi"}
             </h3>
             <p className="text-xs text-[#6B6E60]">
-              Pilih akun terdaftar di bawah ini atau buat akun guru baru.
+              {activeTab === "login" && "Masukkan kredensial terdaftar atau pilih akun terverifikasi."}
+              {activeTab === "register" && "Isi data lengkap. Akun akan ditinjau oleh Super Admin."}
+              {activeTab === "reset" && "Kirimkan email & kata sandi baru untuk divalidasi Super Admin."}
             </p>
           </div>
 
-          {/* Tab Selector Login vs Register */}
-          <div className="flex bg-[#F2EFE6] p-1 rounded-2xl border border-[#E2DDD0]">
+          {/* Tab Selector Login vs Register vs Reset */}
+          <div className="flex bg-[#F2EFE6] p-1 rounded-2xl border border-[#E2DDD0] gap-1">
             <button
               type="button"
-              onClick={() => setActiveTab("login")}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+              onClick={() => {
+                setActiveTab("login");
+                setErrorMsg(null);
+              }}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === "login"
                   ? "bg-white text-[#2D3127] shadow-xs"
                   : "text-[#6B6E60] hover:text-[#2D3127]"
               }`}
             >
-              <Lock className="w-3.5 h-3.5" /> Masuk Akun Terdaftar
+              <Lock className="w-3.5 h-3.5" /> Masuk
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab("register")}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+              onClick={() => {
+                setActiveTab("register");
+                setErrorMsg(null);
+              }}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === "register"
                   ? "bg-white text-[#2D3127] shadow-xs"
                   : "text-[#6B6E60] hover:text-[#2D3127]"
               }`}
             >
-              <UserPlus className="w-3.5 h-3.5" /> Daftar Guru Baru
+              <UserPlus className="w-3.5 h-3.5" /> Daftar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab("reset");
+                setErrorMsg(null);
+              }}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === "reset"
+                  ? "bg-white text-[#174EA6] shadow-xs"
+                  : "text-[#6B6E60] hover:text-[#2D3127]"
+              }`}
+            >
+              <Key className="w-3.5 h-3.5" /> Reset
             </button>
           </div>
 
-          {/* Quick Preset Accounts Section */}
+          {/* Messages Alert */}
+          {errorMsg && (
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-start gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
+          {/* Quick Account Switcher (Verified Accounts) */}
           {activeTab === "login" && (
-            <div className="space-y-2 bg-[#E8F0FE] p-4 rounded-2xl border border-[#D2E3FC]">
+            <div className="space-y-2 bg-[#E8F0FE] p-3.5 rounded-2xl border border-[#D2E3FC]">
               <div className="text-xs font-extrabold text-[#174EA6] flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <KeyRound className="w-4 h-4 text-[#174EA6]" /> Pilih Akun Terdaftar (Masuk 1 Klik):
+                  <KeyRound className="w-4 h-4 text-[#174EA6]" /> Akun Terdaftar Resmi:
                 </span>
-                <span className="text-[10px] bg-white text-[#174EA6] px-2 py-0.5 rounded-full border border-[#D2E3FC]">
-                  {allRegisteredUsers.length} User Terdaftar
+                <span className="text-[10px] bg-white text-[#174EA6] px-2 py-0.5 rounded-full border border-[#D2E3FC] font-bold">
+                  {allRegisteredUsers.length} User
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 gap-2 max-h-52 overflow-y-auto pr-1">
                 {allRegisteredUsers.map((u) => {
                   const isSA = u.role === "superadmin";
+                  const verified = u.isVerified !== false;
+
                   return (
                     <button
                       key={u.id}
                       type="button"
                       onClick={() => handleQuickLogin(u)}
-                      className={`w-full text-left p-3 rounded-xl border transition flex items-center justify-between cursor-pointer group shadow-2xs ${
+                      className={`w-full text-left p-2.5 rounded-xl border transition flex items-center justify-between cursor-pointer group shadow-2xs ${
                         isSA
                           ? "bg-white hover:bg-[#D2E3FC] border-[#D2E3FC] text-[#174EA6]"
-                          : "bg-white hover:bg-[#F2EFE6] border-[#E2DDD0] text-[#2D3127]"
+                          : verified
+                          ? "bg-white hover:bg-[#F2EFE6] border-[#E2DDD0] text-[#2D3127]"
+                          : "bg-amber-50/60 border-amber-200 text-amber-900"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        {u.avatar ? (
-                          <img
-                            src={u.avatar}
-                            alt={u.name}
-                            className="w-8 h-8 rounded-full object-cover shrink-0"
-                          />
-                        ) : (
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-                              isSA ? "bg-[#174EA6] text-white" : "bg-[#3D4035] text-white"
-                            }`}
-                          >
-                            {u.name.slice(0, 2).toUpperCase()}
-                          </div>
-                        )}
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                            isSA ? "bg-[#174EA6] text-white" : "bg-[#3D4035] text-white"
+                          }`}
+                        >
+                          {u.name.slice(0, 2).toUpperCase()}
+                        </div>
                         <div>
                           <div className="font-bold text-xs flex items-center gap-1.5">
                             {u.name}
@@ -272,19 +368,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                                 Super Admin
                               </span>
                             )}
+                            {!verified && (
+                              <span className="text-[9px] bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded font-bold flex items-center gap-0.5">
+                                <Clock className="w-2.5 h-2.5" /> Pending
+                              </span>
+                            )}
                           </div>
                           <div className="text-[10px] opacity-75">{u.email}</div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px] font-bold opacity-0 group-hover:opacity-100 transition text-[#174EA6]">
-                          Masuk &rarr;
-                        </span>
-                        {isSA ? (
-                          <ShieldCheck className="w-4 h-4 text-[#174EA6] shrink-0" />
+                        {verified ? (
+                          <span className="text-[10px] font-bold text-[#174EA6] flex items-center gap-0.5">
+                            Masuk <ArrowRight className="w-3 h-3" />
+                          </span>
                         ) : (
-                          <ArrowRight className="w-4 h-4 text-[#588157] group-hover:translate-x-1 transition shrink-0" />
+                          <span className="text-[10px] font-bold text-amber-800">Menunggu</span>
                         )}
                       </div>
                     </button>
@@ -294,72 +394,51 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             </div>
           )}
 
-          {errorMsg && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold text-center">
-              {errorMsg}
-            </div>
-          )}
-
           {/* Login Form */}
           {activeTab === "login" && (
-            <form onSubmit={handleSubmitLogin} className="space-y-4 pt-1">
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-[#3D4035] mb-1">Pilih Role / Peran:</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRole("guru")}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition ${
-                        selectedRole === "guru"
-                          ? "bg-[#3D4035] text-white border-[#3D4035]"
-                          : "bg-white text-[#3D4035] border-[#D8D4C7]"
-                      }`}
-                    >
-                      <User className="w-4 h-4" /> Guru / Pegawai
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRole("superadmin")}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition ${
-                        selectedRole === "superadmin"
-                          ? "bg-[#174EA6] text-white border-[#174EA6]"
-                          : "bg-white text-[#174EA6] border-[#D2E3FC]"
-                      }`}
-                    >
-                      <ShieldCheck className="w-4 h-4" /> Super Admin
-                    </button>
-                  </div>
-                </div>
+            <form onSubmit={handleSubmitLogin} className="space-y-3 pt-1">
+              <div>
+                <label className="block text-xs font-bold text-[#3D4035] mb-1">
+                  Email / Username Belajar.id:
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="phelunk@gmail.com atau Isukartika30@guru.smk.belajar.id"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-[#FAF9F5] border border-[#D8D4C7] p-2.5 rounded-xl text-xs text-[#2D3127]"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#3D4035] mb-1">
-                    Email / Username Google Workspace Belajar.id:
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="nama.guru@guru.smk.belajar.id"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#FAF9F5] border border-[#D8D4C7] p-2.5 rounded-xl text-xs text-[#2D3127]"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-[#3D4035] mb-1">Kata Sandi / Password:</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-[#FAF9F5] border border-[#D8D4C7] p-2.5 rounded-xl text-xs text-[#2D3127]"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#3D4035] mb-1">Kata Sandi / NIP:</label>
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-[#FAF9F5] border border-[#D8D4C7] p-2.5 rounded-xl text-xs text-[#2D3127]"
-                  />
-                </div>
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("reset");
+                    setResetEmail(email);
+                  }}
+                  className="text-xs text-[#174EA6] hover:underline font-semibold cursor-pointer"
+                >
+                  Lupa kata sandi? Pengajuan Reset
+                </button>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#3D4035] hover:bg-[#2D3127] text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[#3D4035] hover:bg-[#2D3127] text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-2 mt-2"
               >
                 Masuk Ke Dashboard Aplikasi <ArrowRight className="w-4 h-4" />
               </button>
@@ -382,13 +461,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#3D4035] mb-1">Email Sekolah / Akun Belajar.id:</label>
+                <label className="block text-xs font-bold text-[#3D4035] mb-1">Email / Username Belajar.id:</label>
                 <input
                   type="email"
                   required
                   placeholder="ahmad.fauzi@guru.smk.belajar.id"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
+                  className="w-full bg-[#FAF9F5] border border-[#D8D4C7] p-2 rounded-xl text-xs text-[#2D3127]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#3D4035] mb-1">Buat Kata Sandi / Password:</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
                   className="w-full bg-[#FAF9F5] border border-[#D8D4C7] p-2 rounded-xl text-xs text-[#2D3127]"
                 />
               </div>
@@ -429,11 +520,58 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 </select>
               </div>
 
+              <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 space-y-1">
+                <div className="font-bold flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-amber-700" /> Ketentuan Verifikasi:
+                </div>
+                <div>Setelah mendaftar, akun Anda harus disetujui & diverifikasi oleh Super Admin (<strong className="underline">phelunk@gmail.com</strong>) sebelum bisa membuka halaman beranda.</div>
+              </div>
+
               <button
                 type="submit"
                 className="w-full py-3 bg-[#588157] hover:bg-[#3A5A40] text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-2 mt-2"
               >
-                <CheckCircle2 className="w-4 h-4" /> Daftar Akun & Langsung Masuk
+                <CheckCircle2 className="w-4 h-4" /> Daftar Akun (Kirim ke Super Admin)
+              </button>
+            </form>
+          )}
+
+          {/* Reset Password Form */}
+          {activeTab === "reset" && (
+            <form onSubmit={handleSubmitResetRequest} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-[#3D4035] mb-1">Email / Username Terdaftar:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="masukkan email/username Anda"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="w-full bg-[#FAF9F5] border border-[#D8D4C7] p-2.5 rounded-xl text-xs text-[#2D3127]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#3D4035] mb-1">Usulan Kata Sandi Baru:</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="masukkan kata sandi baru yang diinginkan"
+                  value={resetNewPass}
+                  onChange={(e) => setResetNewPass(e.target.value)}
+                  className="w-full bg-[#FAF9F5] border border-[#D8D4C7] p-2.5 rounded-xl text-xs text-[#2D3127]"
+                />
+              </div>
+
+              <div className="p-2.5 bg-[#E8F0FE] border border-[#D2E3FC] rounded-xl text-[11px] text-[#174EA6]">
+                Permintaan ini akan terkirim ke panel kontrol Super Admin untuk divalidasi dan disetujui secara langsung.
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-[#174EA6] hover:bg-[#1557B0] text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-2 mt-2"
+              >
+                <RefreshCw className="w-4 h-4" /> Kirim Pengajuan Reset Password
               </button>
             </form>
           )}
@@ -447,3 +585,4 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     </div>
   );
 };
+
