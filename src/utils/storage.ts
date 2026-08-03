@@ -142,11 +142,54 @@ export const saveUserApiKey = (key: string) => {
   }
 };
 
-// SIKEPO Storage
-export const getSikepoItems = (): SikepoItem[] =>
-  loadFromStorage<SikepoItem[]>(STORAGE_KEYS.SIKEPO, sampleSikepoItems);
-export const saveSikepoItems = (items: SikepoItem[]): void =>
-  saveToStorage(STORAGE_KEYS.SIKEPO, items);
+// SIKEPO Storage (Scoped by UserId)
+export const getSikepoItems = (userId?: string): SikepoItem[] => {
+  if (!userId || userId === "all") {
+    // If requesting all, load base + all user keys
+    const baseItems = loadFromStorage<SikepoItem[]>(STORAGE_KEYS.SIKEPO, sampleSikepoItems);
+    try {
+      const keys = Object.keys(localStorage);
+      const userSpecificItems: SikepoItem[] = [];
+      for (const k of keys) {
+        if (k.startsWith(`${STORAGE_KEYS.SIKEPO}_usr_`)) {
+          const val = localStorage.getItem(k);
+          if (val) {
+            const parsed = JSON.parse(val);
+            if (Array.isArray(parsed)) {
+              userSpecificItems.push(...parsed);
+            }
+          }
+        }
+      }
+      return userSpecificItems.length > 0 ? userSpecificItems : baseItems;
+    } catch {
+      return baseItems;
+    }
+  }
+
+  const userKey = `${STORAGE_KEYS.SIKEPO}_${userId}`;
+  const userItems = loadFromStorage<SikepoItem[] | null>(userKey, null);
+  if (userItems !== null) {
+    return userItems;
+  }
+  
+  // Default to sample items tagged with userId if new user
+  const initialScoped = sampleSikepoItems.map((item) => ({
+    ...item,
+    userId,
+  }));
+  saveToStorage(userKey, initialScoped);
+  return initialScoped;
+};
+
+export const saveSikepoItems = (items: SikepoItem[], userId?: string): void => {
+  if (!userId) {
+    saveToStorage(STORAGE_KEYS.SIKEPO, items);
+    return;
+  }
+  const userKey = `${STORAGE_KEYS.SIKEPO}_${userId}`;
+  saveToStorage(userKey, items);
+};
 
 // Reset all data back to factory defaults
 export const resetAllData = (): void => {

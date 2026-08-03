@@ -1,6 +1,9 @@
-import React, { useState } from "react";
-import { SikepoItem, SchoolProfile, PrintData } from "../types";
+import React, { useState, useEffect } from "react";
+import { SikepoItem, SchoolProfile, PrintData, AuthUser } from "../types";
 import { getSikepoItems, saveSikepoItems } from "../utils/storage";
+import { generateRhkPdf } from "../utils/pdfGenerator";
+import { GoogleDriveReviewModal } from "./GoogleDriveReviewModal";
+import { getAllUsers, updateUserDriveUrl } from "../utils/auth";
 import {
   FolderCheck,
   Plus,
@@ -20,11 +23,16 @@ import {
   X,
   Eye,
   Info,
+  Download,
+  ShieldCheck,
+  User,
 } from "lucide-react";
 
 interface SikepoModuleProps {
   profile: SchoolProfile;
   onOpenPrint: (data: PrintData) => void;
+  currentUser?: AuthUser;
+  onUpdateUserDriveUrl?: (url: string) => void;
 }
 
 const CATEGORIES = [
@@ -56,9 +64,34 @@ const MONTHS = [
 export const SikepoModule: React.FC<SikepoModuleProps> = ({
   profile,
   onOpenPrint,
+  currentUser,
+  onUpdateUserDriveUrl,
 }) => {
-  const [items, setItems] = useState<SikepoItem[]>(getSikepoItems());
+  const isSuperAdmin = currentUser?.role === "superadmin";
+  const [allRegisteredUsers, setAllRegisteredUsers] = useState<AuthUser[]>([]);
+  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState<string>("all");
+
+  const activeUserId = isSuperAdmin ? selectedTeacherFilter : (currentUser?.id || "usr_guru1");
+  const [items, setItems] = useState<SikepoItem[]>(getSikepoItems(activeUserId));
+
+  // Sync user's custom drive folder URL when user changes
+  useEffect(() => {
+    if (currentUser?.driveFolderUrl) {
+      setDriveUrl(currentUser.driveFolderUrl);
+    }
+  }, [currentUser]);
+
+  // Reload items whenever active user selection or prop changes
+  useEffect(() => {
+    setAllRegisteredUsers(getAllUsers());
+  }, []);
+
+  useEffect(() => {
+    setItems(getSikepoItems(activeUserId));
+  }, [activeUserId]);
+
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterMonth, setFilterMonth] = useState<string>("Agustus");
   const [filterYear, setFilterYear] = useState<string>("2026");
@@ -134,8 +167,13 @@ export const SikepoModule: React.FC<SikepoModuleProps> = ({
     const monthName = !isNaN(d.getTime()) ? MONTHS[d.getMonth()] : "Agustus";
     const yearStr = !isNaN(d.getTime()) ? d.getFullYear().toString() : "2026";
 
+    const ownerId = currentUser?.id || "usr_guru1";
+    const ownerName = currentUser?.name || profile.teacherName;
+
     const newItem: SikepoItem = {
       id: `SKP-${Date.now().toString().slice(-6)}`,
+      userId: ownerId,
+      userName: ownerName,
       title,
       category,
       description,
@@ -153,7 +191,7 @@ export const SikepoModule: React.FC<SikepoModuleProps> = ({
 
     const updated = [newItem, ...items];
     setItems(updated);
-    saveSikepoItems(updated);
+    saveSikepoItems(updated, ownerId);
 
     // Reset Form
     setTitle("");
@@ -162,7 +200,7 @@ export const SikepoModule: React.FC<SikepoModuleProps> = ({
     setFileDataUrl("");
     setFileSize("");
     setIsFormOpen(false);
-    showToast("Bukti dukung berhasil disimpan & tersinkron ke Google Drive!");
+    showToast("Bukti dukung berhasil disimpan & terkonversi PDF!");
   };
 
   const handleDelete = (id: string, itemTitle: string) => {
@@ -236,11 +274,19 @@ export const SikepoModule: React.FC<SikepoModuleProps> = ({
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
-            onClick={() => setIsFolderPickerOpen(true)}
+            onClick={() => setIsReviewModalOpen(true)}
             className="flex items-center gap-2 bg-[#E8F0FE] hover:bg-[#D2E3FC] text-[#174EA6] border border-[#D2E3FC] px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs"
           >
+            <CheckCircle2 className="w-4 h-4 text-[#1A73E8]" />
+            Review & Validasi Drive
+          </button>
+
+          <button
+            onClick={() => setIsFolderPickerOpen(true)}
+            className="flex items-center gap-2 bg-white hover:bg-[#F2EFE6] text-[#3D4035] border border-[#D8D4C7] px-3.5 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs"
+          >
             <FolderOpen className="w-4 h-4 text-[#1A73E8]" />
-            Pilih Folder Drive ({driveFolder})
+            Folder: {driveFolder}
           </button>
 
           <button
@@ -256,10 +302,43 @@ export const SikepoModule: React.FC<SikepoModuleProps> = ({
             className="flex items-center gap-2 bg-white hover:bg-[#F2EFE6] text-[#3D4035] border border-[#D8D4C7] px-4 py-2.5 rounded-xl font-semibold text-xs transition cursor-pointer shadow-2xs"
           >
             <Printer className="w-4 h-4 text-[#588157]" />
-            Cetak Bukti Dukung ({filterMonth})
+            Cetak Bulanan ({filterMonth})
           </button>
         </div>
       </div>
+
+      {/* Super Admin Teacher Data Filter Bar */}
+      {isSuperAdmin && (
+        <div className="bg-[#174EA6] text-white p-4 rounded-2xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-[#D2E3FC]">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-5 h-5 text-[#D2E3FC]" />
+            <div>
+              <div className="font-bold text-xs">Panel Penjelajah Data Super Admin SKP</div>
+              <p className="text-[11px] text-[#D2E3FC]">
+                Sebagai Super Admin, Anda dapat memeriksa dan memvalidasi berkas RHK milik seluruh guru terdaftar.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <label className="text-xs font-bold text-[#D2E3FC]">Pilih Guru / Pegawai:</label>
+            <select
+              value={selectedTeacherFilter}
+              onChange={(e) => setSelectedTeacherFilter(e.target.value)}
+              className="bg-white text-[#174EA6] font-bold text-xs px-3 py-1.5 rounded-xl border border-[#D2E3FC] cursor-pointer"
+            >
+              <option value="all">Semua Guru (Kombinasi Rekapitulasi)</option>
+              {allRegisteredUsers
+                .filter((u) => u.role === "guru")
+                .map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.nip || u.email})
+                  </option>
+                ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Statistics Quick View */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -437,6 +516,13 @@ export const SikepoModule: React.FC<SikepoModuleProps> = ({
                     </td>
                     <td className="p-3 text-center">
                       <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => generateRhkPdf(item, profile)}
+                          className="p-1.5 bg-[#E8F0FE] hover:bg-[#D2E3FC] text-[#174EA6] rounded-lg transition"
+                          title="Unduh PDF Resi Bukti Dukung"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           onClick={() => setPreviewItem(item)}
                           className="p-1.5 bg-[#F2EFE6] hover:bg-[#E5E1D5] text-[#3D4035] rounded-lg transition"
@@ -827,6 +913,16 @@ export const SikepoModule: React.FC<SikepoModuleProps> = ({
           </div>
         </div>
       )}
+      {/* Google Drive Review & Validation Modal */}
+      <GoogleDriveReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        items={items}
+        profile={profile}
+        driveFolder={driveFolder}
+        currentUser={currentUser}
+        onUpdateUserDriveUrl={onUpdateUserDriveUrl}
+      />
     </div>
   );
 };

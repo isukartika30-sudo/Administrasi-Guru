@@ -1,3 +1,15 @@
+export interface AuthUser {
+  id: string;
+  username: string;
+  name: string;
+  email: string;
+  role: "superadmin" | "guru";
+  nip?: string;
+  subject?: string;
+  avatar?: string;
+  driveFolderUrl?: string; // Custom Link Google Drive Akun Masing-Masing
+}
+
 export type AttendanceStatus = "H" | "I" | "S" | "A"; // Hadir, Izin, Sakit, Alpa
 
 export interface ClassRoom {
@@ -133,6 +145,8 @@ export type TabType =
 
 export interface SikepoItem {
   id: string;
+  userId?: string;            // ID User Pemilik Data
+  userName?: string;          // Nama Guru Pemilik Data
   title: string;              // Judul Bukti Dukung / Kegiatan
   category: string;           // Kategori / Rencana Hasil Kerja (RHK)
   description: string;        // Deskripsi detail kegiatan / narasi

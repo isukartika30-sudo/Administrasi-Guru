@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { TabType, SchoolProfile, PrintData } from "./types";
+import { TabType, SchoolProfile, PrintData, AuthUser } from "./types";
 import { getProfile, getStudents, getSchedules, getJournals } from "./utils/storage";
+import { getCurrentUser, setCurrentUser, updateUserDriveUrl } from "./utils/auth";
 
 import { Header } from "./components/Header";
 import { Sidebar } from "./components/Sidebar";
@@ -17,19 +18,42 @@ import { GoogleWorkspaceModule } from "./components/GoogleWorkspaceModule";
 import { AiAssistantModule } from "./components/AiAssistantModule";
 import { PrintModal } from "./components/PrintModal";
 import { SettingsModal } from "./components/SettingsModal";
+import { LoginModal } from "./components/LoginModal";
 
 export default function App() {
   const [profile, setProfile] = useState<SchoolProfile>(getProfile());
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [currentUser, setAuthUser] = useState<AuthUser>(getCurrentUser());
 
   // Modals state
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [printData, setPrintData] = useState<PrintData | null>(null);
 
   const students = getStudents();
   const schedules = getSchedules();
   const journals = getJournals();
+
+  const handleLoginSuccess = (user: AuthUser) => {
+    setCurrentUser(user);
+    setAuthUser(user);
+
+    // Sync profile teacherName and nip if available
+    setProfile((prev) => ({
+      ...prev,
+      teacherName: user.name,
+      nip: user.nip || prev.nip,
+      subject: user.subject || prev.subject,
+    }));
+  };
+
+  const handleUpdateUserDriveUrl = (url: string) => {
+    if (currentUser) {
+      const updated = updateUserDriveUrl(currentUser.id, url);
+      setAuthUser(updated);
+    }
+  };
 
   const handleOpenPrint = (data: PrintData) => {
     setPrintData(data);
@@ -53,6 +77,8 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        currentUser={currentUser}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
       />
 
       {/* Main Container Layout */}
@@ -78,7 +104,12 @@ export default function App() {
           )}
 
           {activeTab === "sikepo" && (
-            <SikepoModule profile={profile} onOpenPrint={handleOpenPrint} />
+            <SikepoModule
+              profile={profile}
+              onOpenPrint={handleOpenPrint}
+              currentUser={currentUser}
+              onUpdateUserDriveUrl={handleUpdateUserDriveUrl}
+            />
           )}
 
           {activeTab === "kurikulum" && (
@@ -126,6 +157,12 @@ export default function App() {
         onClose={() => setIsSettingsOpen(false)}
         profile={profile}
         onProfileUpdate={(updated) => setProfile(updated)}
+      />
+
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
       />
     </div>
   );
